@@ -18,17 +18,17 @@ from question_words import *
 
 class DataCollect:
 	def __init__(self):
-		# self.Mfrequency = dict()
-		# self.Mtimestamps = dict()
-		# self.Mcontent = dict()
 		self.Mnames = dict()
 		self.member_questions = dict()
 		self.date_questions = dict()
+		self.member_freq_week = dict()  # member --> # questions in latest week
+		self.member_questions_week = dict() # member --> questions in latest week
+
 	def readfiles(self,inputdir):
 		flag = True
 		current_member = 0
 		current_timestamp = 0
-		count = 0
+		ob_date = '2014-09-26'
 		with open(inputdir) as fin:
 			for line in fin:
 				line = line.replace('\r\n','')
@@ -37,8 +37,6 @@ class DataCollect:
 					continue
 				elif flag and Sline[0][:5]=='2014-':  # this is the first author
 					flag = False
-					timestamp = line[:22]
-					current_timestamp = timestamp
 					if "(" in Sline[-1]:
 						mc = Sline[-1].split('(')  # get member
 					else:
@@ -47,20 +45,16 @@ class DataCollect:
 					member_name = mc[0]
 					current_member = member
 					current_date = Sline[0]
-					# if current_member not in self.Mnames.keys():
+					if current_date=='2014-09-26':
+						print 'begin here~'
+					if current_date > ob_date:
+						if current_member not in self.member_freq_week.keys():
+							self.member_freq_week[current_member]= 1
+						else:
+							self.member_freq_week[current_member] += 1
 					self.Mnames[current_member] = member_name  # qq --> nicknames
 
-					# if current_member not in self.Mtimestamps.keys():
-					# 	self.Mtimestamps[current_member] = []
-					# 	self.Mtimestamps[current_member].append(current_timestamp)
-					# 	self.Mfrequency[current_member] = 1
-					# else:
-					# 	self.Mfrequency[current_member] += 1
-					# 	self.Mtimestamps[current_member].append(current_timestamp)
 				elif Sline[0][:5]=='2014-' and int(Sline[0][5])<2:   # this is the rest authors
-					timestamp = line[:22]
-					current_timestamp = timestamp
-					# count += 1
 					if "(" in Sline[-1]:
 						mc = Sline[-1].split('(')  # get member
 					else:
@@ -69,16 +63,15 @@ class DataCollect:
 					member_name = mc[0]
 					current_member = member
 					current_date = Sline[0]
-					# if current_member not in self.Mnames.keys():
-					self.Mnames[current_member] = member_name
 
-					# if current_member not in self.Mtimestamps.keys():
-					# 	self.Mtimestamps[current_member] = []
-					# 	self.Mtimestamps[current_member].append(current_timestamp)
-					# 	self.Mfrequency[current_member] = 1
-					# else:
-					# 	self.Mfrequency[current_member] += 1
-					# 	self.Mtimestamps[current_member].append(current_timestamp)
+					if current_date > ob_date:
+						if current_member not in self.member_freq_week.keys():
+							self.member_freq_week[current_member]= 1
+							self.member_questions_week[current_member] = []
+						else:
+							self.member_freq_week[current_member] += 1
+
+					self.Mnames[current_member] = member_name
 
 				elif Sline[0][:5]!='2014-':  # this is content
 					Sline[0] = Sline[0].replace(' ','')
@@ -98,84 +91,12 @@ class DataCollect:
 							else:
 								self.member_questions[current_member]=[]
 								self.member_questions[current_member].append(line)
+
+							# observerd member content
+							if current_date > ob_date:
+								self.member_questions_week[current_member].append(line)
+								
 							break
-
-					# if current_member not in self.Mcontent.keys():
-					# 	self.Mcontent[current_member] = line
-					# else:
-					# 	self.Mcontent[current_member] += line
-
-	# def cutwords(self):
-	# 	sortedFrequency = sorted(self.Mfrequency.iteritems(), key=lambda d:d[1], reverse = True)
-	# 	fw = open('pipsay_2','w')
-	# 	count = 0
-	# 	fullContent = ''
-	# 	for member, frequency in sortedFrequency:
-	# 		if member == '10000' or member == '1000000' :
-	# 			continue
-	# 		wfre = dict()
-	# 		count += 1
-	# 		if count>50:
-	# 			break
-	# 		# if member=='272152420':
-	# 		# 	print "here"
-	# 		content = self.Mcontent[member]
-	# 		content = content.replace('\t','')
-	# 		fullContent += content
-	# 		content = jieba.cut(content,cut_all=True)  # cut_all flag
-	# 		# content = jieba.analyse.extract_tags(content,20)
-	# 		Scontent = list(content)
-			
-	# 		for word in Scontent:
-	# 			if word in jieba.analyse.STOP_WORDS:
-	# 				continue
-	# 			if len(word) <4:
-	# 				continue
-	# 			if word not in wfre.keys():
-	# 				wfre[word] = 1
-	# 			else:
-	# 				wfre[word] += 1
-	# 		sortedWordFrequency = sorted(wfre.iteritems(), key=lambda d:d[1], reverse = True)
-			
-	# 		fw1 = open("./members/"+self.Mnames[member]+".txt","w")
-	# 		# fw1.write(str(self.Mnames[member])+" said:\n")
-	# 		co = 0
-	# 		for word, freq in sortedWordFrequency:
-	# 			co += 1
-	# 			if(co > 100):
-	# 				break
-	# 			fw1.write(str(freq).ljust(5)+'\t'+word.encode('utf8').ljust(15)+'\n')
-	# 			# if co%4==0:
-	# 			# 	fw.write('\r')
-	# 		# fw.write('\n...............................................................................\n')
-	# 		fw1.close()
-		
-	# 	fullContent = jieba.cut(fullContent,cut_all=True)
-	# 	Scontent = list(fullContent)
-	# 	wfre = dict()
-	# 	for word in Scontent:
-	# 		if word in jieba.analyse.STOP_WORDS or (not is_zn(word)) or word[0]=='.':
-	# 			continue
-	# 		if len(word) <4:
-	# 			continue
-	# 		if word not in wfre.keys():
-	# 			wfre[word] = 1
-	# 		else:
-	# 			wfre[word] += 1
-	# 	sortedWordFrequency = sorted(wfre.iteritems(), key=lambda d:d[1], reverse = True)
-	# 	# fw.write('\n..............................................................................\n')
-	# 	co = 0
-	# 	for word, freq in sortedWordFrequency:
-	# 		co += 1
-	# 		if(co > 100):
-	# 			break
-	# 		fw.write(str(freq).ljust(5)+'\t'+word.encode('utf8').ljust(15)+'\n')
-	# 		# if co%4==0:
-	# 		# 	fw.write('\r')
-	# 	# fw.write('\n..............................................................................\n')
-
-	# 	fw.close()
-	# 	# print content
 
 	def printResults(self):
 		fw = open('QuestionsByMember','w')
@@ -195,31 +116,25 @@ class DataCollect:
 			fw.write('\n')
 		fw.close()
 		
-		# sortedFrequency = sorted(self.Mfrequency.iteritems(), key=lambda d:d[1], reverse = True)
-		# coun = 0
-		# topmembers = []
-		# for member, frequency in sortedFrequency:
-		# 	# print key, dis
-		# 	coun += 1
-		# 	topmembers.append(member)
-		# 	if coun >20:
-		# 		break
-		# 	fw.write(str(member).ljust(15)+'\t' + self.Mnames[member].ljust(30)+'\t'+str(frequency).ljust(10)+'\n')
-		# fw.close()
+		fw = open('ActiveMembers','w')
+		fwc = open('Candidates','w')
+		sortedFrequency = sorted(self.member_freq_week.iteritems(), key=lambda d:d[1], reverse = True)
+		for member,freq in sortedFrequency:
+			Nquestions=len(self.member_questions_week[member])
+			# fwc.write(self.Mnames[member]+' Total:' + str(freq)+' Question:'+str(Nquestions)+' Ratio:'+str(float(Nquestions)/float(freq))+'\n')
+			fwc.write(self.Mnames[member]+' ' + str(freq)+' '+str(Nquestions)+' '+str(float(Nquestions)/float(freq))+'\n')
+			fw.write('--------------------'+self.Mnames[member]+':\n')
+			for question in self.member_questions_week[member]:
+				fw.write(question+'\n')
+			fw.write('\n')
 
-		# fw = open('member_content_sample','w')
-		# kkeys = sorted(self.Mcontent.keys())
-		# for member in topmembers:
-		# 	fw.write(member+'\t'+self.Mnames[member]+':\n'+self.Mcontent[member]+'\n')		
-		# fw.close()
-
+		fw.close()
+		fwc.close()
 def main():
 	global data
 	data = DataCollect()
-	data.readfiles('chats.txt')
-	# data.readfiles('testRecord.txt')
+	data.readfiles('chats_sample.txt')
 	print "reading files done"
-	# data.cutwords()
 	data.printResults()
 
 if __name__ == '__main__':
