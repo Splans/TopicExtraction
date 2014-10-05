@@ -28,7 +28,7 @@ class DataCollect:
 		flag = True
 		current_member = 0
 		current_timestamp = 0
-		ob_date = '2014-09-26'
+		ob_date = '2014-09-28'
 		with open(inputdir) as fin:
 			for line in fin:
 				line = line.replace('\r\n','')
@@ -45,8 +45,6 @@ class DataCollect:
 					member_name = mc[0]
 					current_member = member
 					current_date = Sline[0]
-					if current_date=='2014-09-26':
-						print 'begin here~'
 					if current_date > ob_date:
 						if current_member not in self.member_freq_week.keys():
 							self.member_freq_week[current_member]= 1
@@ -118,11 +116,13 @@ class DataCollect:
 		
 		fw = open('ActiveMembers','w')
 		fwc = open('Candidates','w')
+		fwc.write('This document contains active members whose average freq is larger than 20.\n')
 		sortedFrequency = sorted(self.member_freq_week.iteritems(), key=lambda d:d[1], reverse = True)
 		for member,freq in sortedFrequency:
 			Nquestions=len(self.member_questions_week[member])
 			# fwc.write(self.Mnames[member]+' Total:' + str(freq)+' Question:'+str(Nquestions)+' Ratio:'+str(float(Nquestions)/float(freq))+'\n')
-			fwc.write(self.Mnames[member]+' ' + str(freq)+' '+str(Nquestions)+' '+str(float(Nquestions)/float(freq))+'\n')
+			if freq/7 > 20:
+				fwc.write(self.Mnames[member]+' ' + str(freq)+' '+str(Nquestions)+' '+str(float(Nquestions)/float(freq))+'\n')
 			fw.write('--------------------'+self.Mnames[member]+':\n')
 			for question in self.member_questions_week[member]:
 				fw.write(question+'\n')
@@ -133,7 +133,7 @@ class DataCollect:
 def main():
 	global data
 	data = DataCollect()
-	data.readfiles('chats_sample.txt')
+	data.readfiles('chats.txt')
 	print "reading files done"
 	data.printResults()
 
